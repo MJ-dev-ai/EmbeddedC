@@ -7,7 +7,7 @@
 
 int main(int argc, char** argv) {
 	int n, in, out;
-	int bufsiz = 100;
+	const int bufsiz = 100;
 	char buf[bufsiz];
 
 	/* 명령행 인수로 복사할 파일명이 없는 경우에 에러를 출력하고 종료한다. */
