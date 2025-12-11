@@ -50,3 +50,6 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# Example files
+tcpip/TCPIP_Src/*

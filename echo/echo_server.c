@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
 	struct sockaddr_in clnt_addr;
 	socklen_t clnt_addr_size;
 
-	char message[] = "Hello World!";
+	char message[30] = "Hello World!";
 	if (argc != 2) {
 		printf("Usage: %s <PORT>\n", argv[0]);
 		exit(1);
@@ -41,19 +41,35 @@ int main(int argc, char* argv[]) {
 		error_handling("listen() error");
 
 	clnt_addr_size = sizeof(clnt_addr);
-	clnt_sock = accept(serv_sock, (struct sockaddr*) &clnt_addr, &clnt_addr_size);
-
-	if (clnt_sock < 0)
-		error_handling("accept() error");
-
 	do {
-		write(clnt_sock, message, sizeof(message));
-		time_t cur = time(NULL);
-		struct tm *local_time = localtime(&cur);
-		printf("[%02d:%02d] Message \"%s\" sent to %s:%s\n", local_time->tm_hour, local_time->tm_min, message, inet_ntoa(clnt_addr.sin_addr),argv[1]);
+
+		clnt_sock = accept(serv_sock, (struct sockaddr*) &clnt_addr, &clnt_addr_size);
+		printf("clnt_sock : %d, new client connected\n",clnt_sock);
+		if (clnt_sock < 0)
+			error_handling("accept() error");
+	
+		do {
+			int len = read(clnt_sock, message, sizeof(message) - 1);
+			if (len > 0) {
+				message[len] = '\0';
+				if (strcmp(message, "quit") == 0) {
+					fputs("Client socket closed.\n", stdout);
+					break;
+				}
+				printf("[%s:%d] Message from client: \"%s\"\n", inet_ntoa(clnt_addr.sin_addr), atoi(argv[1]), message);
+				write(clnt_sock, message, len);
+			}
+			if (len < 0) {
+				error_handling("read() error");
+			}
+			if (len == 0) 
+				continue;
+		} while (1);
+		close(clnt_sock);
 	} while (1);
+
+	sleep(1);
 	close(serv_sock);
-	close(clnt_sock);
 
 	return 0;
 }
